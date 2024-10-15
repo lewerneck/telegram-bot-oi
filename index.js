@@ -94,13 +94,12 @@ async function gerarPagamento(ctx, valor, descricao) {
     }
 }
 
-// Função para verificar o status do pagamento
 async function verificarPagamento(ctx, transactionId) {
     await ctx.reply('Verificando Pagamento...');
 
     try {
         console.log('Verificando pagamento para a transação ID:', transactionId);
-        
+
         const response = await axios.get(`${API_BASE_URL}/transactions/${transactionId}`, {
             headers: {
                 'Authorization': `Bearer ${PUSHIN_PAY_API_KEY}`,
@@ -147,10 +146,10 @@ async function verificarPagamento(ctx, transactionId) {
             // Notificação ao usuário do pagamento aprovado e link
             await ctx.reply(`🎉 **Bem-vindo!** 🎉\n\nSeu pagamento foi aprovado! Aqui está o link do seu pacote: [Clique aqui](${linkEntrega})`);
 
-            // Notificação ao administrador
+            // Notificação ao administrador com o valor em comissão
             const adminId = '5308694170'; // Substitua pelo ID do administrador
-            const mensagemAdmin = `Venda Realizada\nSua comissão: R$ ${valor / 100}`; // Divide por 100, pois o valor é em centavos
-            await bot.telegram.sendMessage(adminId, mensagemAdmin); // Envia a mensagem ao administrador
+            const mensagemAdmin = `*Venda Realizada*\nSua comissão: R$ ${(valor / 100).toFixed(2)}`; // Formatação em negrito e comissão formatada
+            await bot.telegram.sendMessage(adminId, mensagemAdmin, { parse_mode: 'MarkdownV2' }); // Envia a mensagem ao administrador
 
         } else {
             await ctx.reply('Ainda não identifiquei esse pagamento, aguarde e verifique novamente...', {
@@ -168,6 +167,14 @@ async function verificarPagamento(ctx, transactionId) {
         await ctx.reply('Ocorreu um erro ao verificar o pagamento. Tente novamente mais tarde.');
     }
 }
+
+// Função para notificar quando um PIX é gerado
+async function notificarPixGerado(ctx, valorPix) {
+    const adminId = '5308694170'; // Substitua pelo ID do administrador
+    const mensagemPixGerado = `*Pix Gerado!*\nSua comissão: R$ ${(valorPix / 100).toFixed(2)}`; // Formatação em negrito e comissão formatada
+    await bot.telegram.sendMessage(adminId, mensagemPixGerado, { parse_mode: 'MarkdownV2' }); // Envia a mensagem ao administrador
+}
+
 
 
 // Comandos para gerar pagamento
