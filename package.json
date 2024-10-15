@@ -1,12 +1,13 @@
 {
-  "name": "telegram-bot-oi",
+  "name": "telegram-bot-pagamentos",
   "version": "1.0.0",
-  "description": "",
+  "description": "Bot de vendas com integração Pushin Pay para pagamentos via PIX.",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
+    "axios": "^0.21.1",
     "telegraf": "^4.0.0"
   },
   "license": "MIT"
