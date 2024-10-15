@@ -100,6 +100,7 @@ async function verificarPagamento(ctx, transactionId) {
     try {
         console.log('Verificando pagamento para a transação ID:', transactionId);
 
+        // Requisição para verificar o status do pagamento
         const response = await axios.get(`${API_BASE_URL}/transactions/${transactionId}`, {
             headers: {
                 'Authorization': `Bearer ${PUSHIN_PAY_API_KEY}`,
@@ -107,24 +108,25 @@ async function verificarPagamento(ctx, transactionId) {
             },
         });
 
-        console.log('Resposta da API:', response.data); // Loga a resposta da API
+        // Log para verificar o que foi retornado pela API
+        console.log('Resposta da API:', response.data);
 
+        // Acessa os dados da resposta
         const status = response.data.status;
-        const valor = response.data.value; // Captura o valor do pagamento
+        const valor = response.data.value; // Verifica o campo "value"
 
-        // Captura o packageKey diretamente da sessão
+        // Verifica se o packageKey está armazenado na sessão
         const packageKey = ctx.session.packageKey;
 
-        // Verifica se o packageKey está presente
         if (!packageKey) {
-            await ctx.reply('Ocorreu um erro ao identificar o pacote escolhido. Por favor, tente novamente.');
-            return; // Encerra a função se não houver packageKey válida
+            await ctx.reply('Erro: Pacote não identificado. Tente novamente.');
+            return; // Interrompe a execução se o pacote não for encontrado
         }
 
         if (status === 'approved' || status === 'paid') {
             let linkEntrega = '';
 
-            // Define os links específicos para cada pacote
+            // Define os links de entrega baseados no pacote
             switch (packageKey) {
                 case 'pixmorango':
                     linkEntrega = 'https://google.com';
@@ -137,34 +139,40 @@ async function verificarPagamento(ctx, transactionId) {
                     break;
             }
 
-            // Verifica se o link foi configurado corretamente
+            // Verifica se o link de entrega foi definido corretamente
             if (!linkEntrega) {
-                await ctx.reply('Ocorreu um erro ao gerar o link de entrega. Por favor, entre em contato com o suporte.');
-                return; // Encerra a função se não houver link válido
+                await ctx.reply('Erro ao gerar link de entrega. Contate o suporte.');
+                return; // Interrompe se não houver link
             }
 
-            // Notificação ao usuário do pagamento aprovado e link
-            await ctx.reply(`🎉 **Bem-vindo!** 🎉\n\nSeu pagamento foi aprovado! Aqui está o link do seu pacote: [Clique aqui](${linkEntrega})`);
+            // Envia mensagem ao usuário sobre a aprovação e entrega
+            await ctx.reply(`🎉 **Bem-vindo!** 🎉\n\nSeu pagamento foi aprovado! Aqui está o link do seu pacote: [Clique aqui](${linkEntrega})`, {
+                parse_mode: 'MarkdownV2',
+            });
 
-            // Notificação ao administrador com o valor em comissão
+            // Notifica o administrador sobre a venda realizada
             const adminId = '5308694170'; // Substitua pelo ID do administrador
-            const mensagemAdmin = `*Venda Realizada*\nSua comissão: R$ ${(valor / 100).toFixed(2)}`; // Formatação em negrito e comissão formatada
-            await bot.telegram.sendMessage(adminId, mensagemAdmin, { parse_mode: 'MarkdownV2' }); // Envia a mensagem ao administrador
+            const mensagemAdmin = `*Venda Realizada*\nSua comissão: R$ ${(valor / 100).toFixed(2)}`;
+            await bot.telegram.sendMessage(adminId, mensagemAdmin, { parse_mode: 'MarkdownV2' });
 
         } else {
-            await ctx.reply('Ainda não identifiquei esse pagamento, aguarde e verifique novamente...', {
+            // Caso o pagamento não tenha sido aprovado
+            await ctx.reply('Pagamento ainda não confirmado. Tente novamente mais tarde.', {
                 reply_markup: {
                     inline_keyboard: [
                         [
-                            { text: '⏳ JÁ PAGUEI ⏳', callback_data: `verificar_pagamento:${transactionId}` }
+                            { text: '⏳ Já Paguei ⏳', callback_data: `verificar_pagamento:${transactionId}` }
                         ]
                     ]
                 }
             });
         }
     } catch (error) {
+        // Log detalhado para identificar o erro
         console.error('Erro ao verificar pagamento:', error.response ? error.response.data : error.message);
-        await ctx.reply('Ocorreu um erro ao verificar o pagamento. Tente novamente mais tarde.');
+
+        // Resposta ao usuário sobre o erro
+        await ctx.reply('Erro ao verificar o pagamento. Verifique se o ID da transação está correto ou tente novamente mais tarde.');
     }
 }
 
