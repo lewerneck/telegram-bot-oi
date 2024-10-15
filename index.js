@@ -16,7 +16,7 @@ bot.start((ctx) => {
     const videoUrl = 'https://video.gumlet.io/66180b4d8ec2efeb9164568c/66180b9c8ec2efeb916458ec/download.mp4'; // URL do vídeo
 
     // Mensagem a ser enviada
-    const caption = `🔥 SOMENTE HOJE METADE DO PREÇO 🔥\n\n` +
+    const caption = `🔥 oi SOMENTE HOJE METADE DO PREÇO 🔥\n\n` +
                     `• Pacote MORANGO 🍓 \n` +
                     `10 Fotos + 13 Vídeos de nudes e masturbação\n` +
                     `🔥 De R$ 39,90 por R$ 19,90\n\n` +
@@ -146,7 +146,7 @@ async function verificarPagamento(ctx, transactionId) {
                 reply_markup: {
                     inline_keyboard: [
                         [
-                            { text: '⏳ JÁ PAGUEI ⏳', callback_data: `verificar_pagamento:${transactionId}` }
+                            { text: '⏳ VERIFICAR NOVAMENTE ⏳', callback_data: `verificar_pagamento:${transactionId}` }
                         ]
                     ]
                 }
