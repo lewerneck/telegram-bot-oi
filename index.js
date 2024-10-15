@@ -161,7 +161,7 @@ async function verificarPagamento(ctx, transactionId) {
                 reply_markup: {
                     inline_keyboard: [
                         [
-                            { text: '⏳ Já Paguei ⏳', callback_data: `verificar_pagamento:${transactionId}` }
+                            { text: '⏳ VERIFICAR NOVAMENTE ⏳', callback_data: `verificar_pagamento:${transactionId}` }
                         ]
                     ]
                 }
