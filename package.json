@@ -9,5 +9,5 @@
   "dependencies": {
     "telegraf": "^4.0.0"
   },
-  "license": "MIT"  // Adicione isso aqui
+  "license": "MIT"
 }
