@@ -16,7 +16,7 @@ bot.start((ctx) => {
     const videoUrl = 'https://video.gumlet.io/66180b4d8ec2efeb9164568c/66180b9c8ec2efeb916458ec/download.mp4'; // URL do vídeo
 
     // Mensagem a ser enviada
-    const caption = `🔥 oi SOMENTE HOJE METADE DO PREÇO 🔥\n\n` +
+    const caption = `🔥 SOMENTE HOJE METADE DO PREÇO 🔥\n\n` +
                     `• Pacote MORANGO 🍓 \n` +
                     `10 Fotos + 13 Vídeos de nudes e masturbação\n` +
                     `🔥 De R$ 39,90 por R$ 19,90\n\n` +
@@ -113,11 +113,19 @@ async function verificarPagamento(ctx, transactionId) {
         const status = response.data.status;
         const valor = response.data.value; // Captura o valor do pagamento
 
-        // Captura o packageKey corretamente
-        const packageKey = ctx.callbackData ? ctx.callbackData.split(':')[1] : null;
+        // Captura o packageKey diretamente da sessão
+        const packageKey = ctx.session.packageKey;
+
+        // Verifica se o packageKey está presente
+        if (!packageKey) {
+            await ctx.reply('Ocorreu um erro ao identificar o pacote escolhido. Por favor, tente novamente.');
+            return; // Encerra a função se não houver packageKey válida
+        }
 
         if (status === 'approved' || status === 'paid') {
             let linkEntrega = '';
+
+            // Define os links específicos para cada pacote
             switch (packageKey) {
                 case 'pixmorango':
                     linkEntrega = 'https://google.com';
@@ -128,9 +136,12 @@ async function verificarPagamento(ctx, transactionId) {
                 case 'pixcereja':
                     linkEntrega = 'https://instagram.com';
                     break;
-                default:
-                    linkEntrega = 'https://defaultlink.com'; // Caso o packageKey não corresponda a nenhum
-                    break;
+            }
+
+            // Verifica se o link foi configurado corretamente
+            if (!linkEntrega) {
+                await ctx.reply('Ocorreu um erro ao gerar o link de entrega. Por favor, entre em contato com o suporte.');
+                return; // Encerra a função se não houver link válido
             }
 
             // Notificação ao usuário do pagamento aprovado e link
@@ -146,7 +157,7 @@ async function verificarPagamento(ctx, transactionId) {
                 reply_markup: {
                     inline_keyboard: [
                         [
-                            { text: '⏳ VERIFICAR NOVAMENTE ⏳', callback_data: `verificar_pagamento:${transactionId}` }
+                            { text: '⏳ JÁ PAGUEI ⏳', callback_data: `verificar_pagamento:${transactionId}` }
                         ]
                     ]
                 }
