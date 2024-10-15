@@ -1,0 +1,13 @@
+{
+  "name": "telegram-bot-oi",
+  "version": "1.0.0",
+  "description": "Bot simples que responde OI quando usuário aperta em start",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "telegraf": "^4.0.0",
+    "dotenv": "^10.0.0"
+  }
+}
