@@ -125,18 +125,15 @@ async function verificarPagamento(ctx, transactionId) {
             let linkEntrega = '';
             switch (packageKey) {
                 case 'pixmorango':
-                    linkEntrega = 'https://google.com';
+                    linkEntrega = 'https://lewerneck.github.io/a9fk-morango/';
                     break;
                 case 'pixpessego':
-                    linkEntrega = 'https://youtube.com';
+                    linkEntrega = 'https://lewerneck.github.io/b7lq-pessego/';
                     break;
                 case 'pixcereja':
-                    linkEntrega = 'https://instagram.com';
+                    linkEntrega = 'https://lewerneck.github.io/x5pz-cereja/';
                     break;
-                default:
-                    linkEntrega = 'https://defaultlink.com'; // Caso o packageKey não corresponda a nenhum
-                    break;
-            }
+               }
 
             // Notificação ao usuário do pagamento aprovado e link
             await ctx.reply(`🎉 **Bem-vindo!** 🎉\n\nSeu pagamento foi aprovado! Aqui está o link do seu pacote: [Clique aqui](${linkEntrega})`);
@@ -150,7 +147,7 @@ async function verificarPagamento(ctx, transactionId) {
                 reply_markup: {
                     inline_keyboard: [
                         [
-                            { text: '⏳ JÁ PAGUEI ⏳', callback_data: `verificar_pagamento:${transactionId}` }
+                            { text: '⏳ VERIFICAR NOVAMENTE ⏳', callback_data: `verificar_pagamento:${transactionId}` }
                         ]
                     ]
                 }
@@ -163,7 +160,7 @@ async function verificarPagamento(ctx, transactionId) {
 }
 
 // Comandos para gerar pagamento
-bot.action('pixmorango', (ctx) => gerarPagamento(ctx, 1990, 'PACOTE MORANGO • R$19,90\n10 fotos e 13 vídeos'));
+bot.action('pixmorango', (ctx) => gerarPagamento(ctx, 50.90, 'PACOTE MORANGO • R$19,90\n10 fotos e 13 vídeos'));
 bot.action('pixpessego', (ctx) => gerarPagamento(ctx, 3700, 'PACOTE PÊSSEGO • R$37\n15 fotos e 20 vídeos'));
 bot.action('pixcereja', (ctx) => gerarPagamento(ctx, 5700, 'PACOTE CEREJA • R$57\n20 fotos e 25 vídeos'));
 
