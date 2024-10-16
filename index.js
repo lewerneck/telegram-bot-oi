@@ -39,6 +39,8 @@ bot.start((ctx) => {
     ctx.replyWithVideo(videoUrl, { caption, reply_markup: inlineKeyboard.reply_markup });
 });
 
+// Função genérica para gerar pagamento
+// Função genérica para gerar pagamento
 async function gerarPagamento(ctx, valor, descricao) {
     await ctx.reply('Gerando Pagamento\\.\\.\\.', { parse_mode: 'MarkdownV2' });
 
@@ -59,7 +61,7 @@ async function gerarPagamento(ctx, valor, descricao) {
             const transactionId = response.data.id; // Armazena o ID da transação
 
             await ctx.reply(
-                `✅ Oi ***Pagamento Gerado com Sucesso\\! *** ✅ \n\n` + // Negrito
+                `✅ ***Pagamento Gerado com Sucesso\\! *** ✅ \n\n` + // Negrito
                 `Seu pagamento foi gerado e é válido por 30 minutos\\. \n\n` + // Regular
                 `ℹ️ Para efetuar o pagamento, utilize a opção ***"Pagar" \\-\\> "PIX Copia e Cola"*** no aplicativo do seu banco\\. \\(Não usar a opção chave aleatória\\) \n\n` + // Regular
                 `Agora, é só realizar o pagamento e aguardar a aprovação\\. Assim que for aprovado, você receberá o acesso imediatamente\\.\n\n` + // Regular
@@ -76,15 +78,18 @@ async function gerarPagamento(ctx, valor, descricao) {
                     reply_markup: {
                         inline_keyboard: [
                             [
-                                { text: '⏳ JÁ PAGUEI ⏳', callback_data: `verificar_pagamento:${transactionId}` } // Botão para verificar pagamento
+                                { text: '⏳ VERIFICAR NOVAMENTE ⏳', callback_data: `verificar_pagamento:${transactionId}` } // Botão para verificar pagamento
                             ]
                         ]
                     }
                 }
             );
 
-            // **Chamada da função para notificar o administrador**
-            await notificarPixGerado(ctx, valor);  // Adiciona a notificação para o administrador
+            // **Notificação ao administrador sobre o PIX gerado**
+            const adminMessage = `🔔 Novo pagamento PIX gerado!\n` +
+                                 `Descrição: ${descricao}\n` +
+                                 `Valor: R$ ${(valor / 100).toFixed(2)}`;
+            await bot.telegram.sendMessage(ADMIN_ID, adminMessage); // Envia a mensagem ao administrador
 
         } else {
             console.error('Erro: QR Code não encontrado:', response.data);
@@ -97,6 +102,7 @@ async function gerarPagamento(ctx, valor, descricao) {
 }
 
 
+// Função para verificar o status do pagamento
 async function verificarPagamento(ctx, transactionId) {
     await ctx.reply('Verificando Pagamento...');
 
@@ -140,7 +146,7 @@ async function verificarPagamento(ctx, transactionId) {
 
             // Notificação ao administrador
             const adminId = '5308694170'; // Substitua pelo ID do administrador
-            const mensagemAdmin = `***Venda Realizada\nSua comissão: R$ ${valor / 100}`; // Divide por 100, pois o valor é em centavos
+            const mensagemAdmin = `Venda Realizada\nSua comissão: R$ ${valor / 100}`; // Divide por 100, pois o valor é em centavos
             await bot.telegram.sendMessage(adminId, mensagemAdmin); // Envia a mensagem ao administrador
 
         } else {
@@ -148,7 +154,7 @@ async function verificarPagamento(ctx, transactionId) {
                 reply_markup: {
                     inline_keyboard: [
                         [
-                            { text: '⏳ VERIFICAR NOVAMENTE ⏳', callback_data: `verificar_pagamento:${transactionId}` }
+                            { text: '⏳ JÁ PAGUEI ⏳', callback_data: `verificar_pagamento:${transactionId}` }
                         ]
                     ]
                 }
@@ -159,14 +165,6 @@ async function verificarPagamento(ctx, transactionId) {
         await ctx.reply('Ocorreu um erro ao verificar o pagamento. Tente novamente mais tarde.');
     }
 }
-
-// Função para notificar quando um PIX é gerado
-async function notificarPixGerado(ctx, valorPix) {
-    const adminId = '5308694170'; // Substitua pelo ID do administrador
-    const mensagemPixGerado = `***Pix Gerado\\! ***\nSua comissão: R$ ${(valorPix / 100).toFixed(2)}`; // Formatação em negrito e comissão formatada
-    await bot.telegram.sendMessage(adminId, mensagemPixGerado, { parse_mode: 'MarkdownV2' }); // Envia a mensagem ao administrador
-}
-
 
 
 // Comandos para gerar pagamento
