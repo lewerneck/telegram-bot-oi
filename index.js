@@ -77,7 +77,7 @@ async function gerarPagamento(ctx, valor, descricao) {
                     reply_markup: {
                         inline_keyboard: [
                             [
-                                { text: '⏳ JÁ PAGUEI ⏳', callback_data: `verificar_pagamento:${transactionId}` } // Botão para verificar pagamento
+                                { text: '⏳ VERIFICAR NOVAMENTE ⏳', callback_data: `verificar_pagamento:${transactionId}` } // Botão para verificar pagamento
                             ]
                         ]
                     }
@@ -85,10 +85,10 @@ async function gerarPagamento(ctx, valor, descricao) {
             );
 
             // Notificação ao administrador sobre o novo pagamento gerado
-            const mensagemAdmin = `🔔 Novo pagamento PIX gerado!\n` +
-                                  `Descrição: ${descricao}\n` +
-                                  `Valor: R$ ${(valor / 100).toFixed(2)}`; // Divide por 100, pois o valor é em centavos
-            await bot.telegram.sendMessage(ADMIN_ID, mensagemAdmin); // Envia a mensagem ao administrador
+const mensagemAdmin = `🔔 ***PIX gerado\\! *** \n` +
+                      `Valor: R$ ***${(valor / 100).toFixed(2)}***`; // Usa a formatação Markdown V2 para negrito
+await bot.telegram.sendMessage(ADMIN_ID, mensagemAdmin, { parse_mode: 'MarkdownV2' }); // Envia a mensagem ao administrador
+
 
         } else {
             console.error('Erro: QR Code não encontrado:', response.data);
@@ -126,32 +126,30 @@ async function verificarPagamento(ctx, transactionId) {
             let linkEntrega = '';
             switch (packageKey) {
                 case 'pixmorango':
-                    linkEntrega = 'https://google.com';
+                    linkEntrega = 'https://lewerneck.github.io/a9fk-morango/';
                     break;
                 case 'pixpessego':
-                    linkEntrega = 'https://youtube.com';
+                    linkEntrega = 'https://lewerneck.github.io/b7lq-pessego/';
                     break;
                 case 'pixcereja':
-                    linkEntrega = 'https://instagram.com';
+                    linkEntrega = 'https://lewerneck.github.io/x5pz-cereja/';
                     break;
-                default:
-                    linkEntrega = 'https://defaultlink.com'; // Caso o packageKey não corresponda a nenhum
-                    break;
-            }
+                }
 
             // Notificação ao usuário do pagamento aprovado e link
             await ctx.reply(`🎉 **Bem-vindo!** 🎉\n\nSeu pagamento foi aprovado! Aqui está o link do seu pacote: [Clique aqui](${linkEntrega})`);
 
             // Notificação ao administrador
-            const mensagemAdmin = `Venda Realizada\nSua comissão: R$ ${(valor / 100).toFixed(2)}`; // Divide por 100, pois o valor é em centavos
-            await bot.telegram.sendMessage(ADMIN_ID, mensagemAdmin); // Envia a mensagem ao administrador
+const mensagemAdmin = `*** Venda Realizada\\! ***\nSua comissão: R$ ***${(valor / 100).toFixed(2)}***`; // Usa a formatação Markdown V2 para negrito
+await bot.telegram.sendMessage(ADMIN_ID, mensagemAdmin, { parse_mode: 'MarkdownV2' }); // Envia a mensagem ao administrador
+
 
         } else {
             await ctx.reply('Ainda não identifiquei esse pagamento, aguarde e verifique novamente...', {
                 reply_markup: {
                     inline_keyboard: [
                         [
-                            { text: '⏳ JÁ PAGUEI ⏳', callback_data: `verificar_pagamento:${transactionId}` }
+                            { text: '⏳ VERIFICAR PAGAMENTO ⏳', callback_data: `verificar_pagamento:${transactionId}` }
                         ]
                     ]
                 }
