@@ -40,7 +40,6 @@ bot.start((ctx) => {
 });
 
 // Função genérica para gerar pagamento
-// Função genérica para gerar pagamento
 async function gerarPagamento(ctx, valor, descricao) {
     await ctx.reply('Gerando Pagamento\\.\\.\\.', { parse_mode: 'MarkdownV2' });
 
@@ -78,18 +77,12 @@ async function gerarPagamento(ctx, valor, descricao) {
                     reply_markup: {
                         inline_keyboard: [
                             [
-                                { text: '⏳ VERIFICAR NOVAMENTE ⏳', callback_data: `verificar_pagamento:${transactionId}` } // Botão para verificar pagamento
+                                { text: '⏳ JÁ PAGUEI ⏳', callback_data: `verificar_pagamento:${transactionId}` } // Botão para verificar pagamento
                             ]
                         ]
                     }
                 }
             );
-
-            // **Notificação ao administrador sobre o PIX gerado**
-            const adminMessage = `🔔 Novo pagamento PIX gerado!\n` +
-                                 `Descrição: ${descricao}\n` +
-                                 `Valor: R$ ${(valor / 100).toFixed(2)}`;
-            await bot.telegram.sendMessage(ADMIN_ID, adminMessage); // Envia a mensagem ao administrador
 
         } else {
             console.error('Erro: QR Code não encontrado:', response.data);
@@ -100,7 +93,6 @@ async function gerarPagamento(ctx, valor, descricao) {
         await ctx.reply('Ocorreu um erro ao gerar o pagamento. Tente novamente mais tarde.');
     }
 }
-
 
 // Função para verificar o status do pagamento
 async function verificarPagamento(ctx, transactionId) {
