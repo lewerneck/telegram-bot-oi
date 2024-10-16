@@ -77,7 +77,7 @@ async function gerarPagamento(ctx, valor, descricao) {
                     reply_markup: {
                         inline_keyboard: [
                             [
-                                { text: '⏳ VERIFICAR NOVAMENTE ⏳', callback_data: `verificar_pagamento:${transactionId}` } // Botão para verificar pagamento
+                                { text: '⏳ JÁ PAGUEI ⏳', callback_data: `verificar_pagamento:${transactionId}` } // Botão para verificar pagamento
                             ]
                         ]
                     }
@@ -85,9 +85,9 @@ async function gerarPagamento(ctx, valor, descricao) {
             );
 
             // Notificação ao administrador sobre o novo pagamento gerado
-            const mensagemAdmin = `🔔 ***PIX gerado\\! *** \n` +
-                                  `Valor: R$ ***${(valor / 100).toFixed(2)}***`; // Usa a formatação Markdown V2 para negrito
-            await bot.telegram.sendMessage(ADMIN_ID, mensagemAdmin, { parse_mode: 'MarkdownV2' }); // Envia a mensagem ao administrador
+            const mensagemAdmin = `🔔 Novo pagamento PIX gerado!\n` +
+                                  `Valor: R$ ${(valor / 100).toFixed(2)}`; // Divide por 100, pois o valor é em centavos
+            await bot.telegram.sendMessage(ADMIN_ID, mensagemAdmin); // Envia a mensagem ao administrador
 
         } else {
             console.error('Erro: QR Code não encontrado:', response.data);
@@ -125,29 +125,32 @@ async function verificarPagamento(ctx, transactionId) {
             let linkEntrega = '';
             switch (packageKey) {
                 case 'pixmorango':
-                    linkEntrega = 'https://lewerneck.github.io/a9fk-morango/';
+                    linkEntrega = 'https://google.com';
                     break;
                 case 'pixpessego':
-                    linkEntrega = 'https://lewerneck.github.io/b7lq-pessego/';
+                    linkEntrega = 'https://youtube.com';
                     break;
                 case 'pixcereja':
-                    linkEntrega = 'https://lewerneck.github.io/x5pz-cereja/';
+                    linkEntrega = 'https://instagram.com';
                     break;
-                }
+                default:
+                    linkEntrega = 'https://defaultlink.com'; // Caso o packageKey não corresponda a nenhum
+                    break;
+            }
 
             // Notificação ao usuário do pagamento aprovado e link
             await ctx.reply(`🎉 **Bem-vindo!** 🎉\n\nSeu pagamento foi aprovado! Aqui está o link do seu pacote: [Clique aqui](${linkEntrega})`);
 
             // Notificação ao administrador
-            const mensagemAdmin = `*** Venda Realizada\\! ***\nSua comissão: R$ ***${(valor / 100).toFixed(2)}***`; // Usa a formatação Markdown V2 para negrito
-            await bot.telegram.sendMessage(ADMIN_ID, mensagemAdmin, { parse_mode: 'MarkdownV2' }); // Envia a mensagem ao administrador
+            const mensagemAdmin = `Venda Realizada\nSua comissão: R$ ${(valor / 100).toFixed(2)}`; // Divide por 100, pois o valor é em centavos
+            await bot.telegram.sendMessage(ADMIN_ID, mensagemAdmin); // Envia a mensagem ao administrador
 
         } else {
             await ctx.reply('Ainda não identifiquei esse pagamento, aguarde e verifique novamente...', {
                 reply_markup: {
                     inline_keyboard: [
                         [
-                            { text: '⏳ VERIFICAR PAGAMENTO ⏳', callback_data: `verificar_pagamento:${transactionId}` }
+                            { text: '⏳ JÁ PAGUEI ⏳', callback_data: `verificar_pagamento:${transactionId}` }
                         ]
                     ]
                 }
@@ -165,7 +168,12 @@ bot.action('pixpessego', (ctx) => gerarPagamento(ctx, 3700, 'PACOTE PÊSSEGO •
 bot.action('pixcereja', (ctx) => gerarPagamento(ctx, 5700, 'PACOTE CEREJA • R$57\n20 fotos e 25 vídeos'));
 
 // Ação para verificar pagamento
-bot.action(/verificar_pagamento:(.+)/, (ctx) => verificarPagamento(ctx, ctx.match[1]));
+bot.action(/verificar_pagamento:(.+)/, (ctx) => {
+    const transactionId = ctx.match[1]; // Captura o ID da transação
+    verificarPagamento(ctx, transactionId);
+});
 
-// Inicia o bot
-bot.launch().then(() => console.log('Bot iniciado!')).catch(err => console.error('Erro ao iniciar o bot:', err));
+// Lança o bot
+bot.launch().then(() => {
+    console.log('Bot está funcionando!');
+});
