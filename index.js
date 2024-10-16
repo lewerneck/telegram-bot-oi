@@ -1,6 +1,6 @@
 const { Telegraf, Markup } = require('telegraf'); // Importa o Telegraf e o Markup
 const axios = require('axios'); // Importa o Axios para requisições HTTP
-const bot = new Telegraf('7853185177:AAFcV7e8auo_QxMPHaE9_CYJ0O3LgbOm50E'); // Token do seu bot
+const bot = new Telegraf('7886636657:AAFq1ogAzjhFpfiJMue-Lwp9lsm_3XZqpjM'); // Token do seu bot
 
 // Define a chave da API do Pushin Pay
 const PUSHIN_PAY_API_KEY = '1720|hZ42SlgkeM27SP6J1oJWR5I3hgmqKg988TtQtJsE5f93fe73';
