@@ -60,7 +60,7 @@ async function gerarPagamento(ctx, valor, descricao) {
             const transactionId = response.data.id; // Armazena o ID da transação
 
             await ctx.reply(
-                `✅ Oi ***Pagamento Gerado com Sucesso\\! *** ✅ \n\n` + // Negrito
+                `✅ ***Pagamento Gerado com Sucesso\\! *** ✅ \n\n` + // Negrito
                 `Seu pagamento foi gerado e é válido por 30 minutos\\. \n\n` + // Regular
                 `ℹ️ Para efetuar o pagamento, utilize a opção ***"Pagar" \\-\\> "PIX Copia e Cola"*** no aplicativo do seu banco\\. \\(Não usar a opção chave aleatória\\) \n\n` + // Regular
                 `Agora, é só realizar o pagamento e aguardar a aprovação\\. Assim que for aprovado, você receberá o acesso imediatamente\\.\n\n` + // Regular
@@ -83,6 +83,9 @@ async function gerarPagamento(ctx, valor, descricao) {
                     }
                 }
             );
+
+            // **Chamada da função para notificar o administrador**
+            await notificarPixGerado(ctx, valor);  // Adiciona a notificação para o administrador
 
         } else {
             console.error('Erro: QR Code não encontrado:', response.data);
