@@ -85,10 +85,9 @@ async function gerarPagamento(ctx, valor, descricao) {
             );
 
             // Notificação ao administrador sobre o novo pagamento gerado
-const mensagemAdmin = `🔔 ***PIX gerado\\! *** \n` +
-                      `Valor: R$ ***${(valor / 100).toFixed(2)}***`; // Usa a formatação Markdown V2 para negrito
-await bot.telegram.sendMessage(ADMIN_ID, mensagemAdmin, { parse_mode: 'MarkdownV2' }); // Envia a mensagem ao administrador
-
+            const mensagemAdmin = `🔔 ***PIX gerado\\! *** \n` +
+                                  `Valor: R$ ***${(valor / 100).toFixed(2)}***`; // Usa a formatação Markdown V2 para negrito
+            await bot.telegram.sendMessage(ADMIN_ID, mensagemAdmin, { parse_mode: 'MarkdownV2' }); // Envia a mensagem ao administrador
 
         } else {
             console.error('Erro: QR Code não encontrado:', response.data);
@@ -140,9 +139,8 @@ async function verificarPagamento(ctx, transactionId) {
             await ctx.reply(`🎉 **Bem-vindo!** 🎉\n\nSeu pagamento foi aprovado! Aqui está o link do seu pacote: [Clique aqui](${linkEntrega})`);
 
             // Notificação ao administrador
-const mensagemAdmin = `*** Venda Realizada\\! ***\nSua comissão: R$ ***${(valor / 100).toFixed(2)}***`; // Usa a formatação Markdown V2 para negrito
-await bot.telegram.sendMessage(ADMIN_ID, mensagemAdmin, { parse_mode: 'MarkdownV2' }); // Envia a mensagem ao administrador
-
+            const mensagemAdmin = `*** Venda Realizada\\! ***\nSua comissão: R$ ***${(valor / 100).toFixed(2)}***`; // Usa a formatação Markdown V2 para negrito
+            await bot.telegram.sendMessage(ADMIN_ID, mensagemAdmin, { parse_mode: 'MarkdownV2' }); // Envia a mensagem ao administrador
 
         } else {
             await ctx.reply('Ainda não identifiquei esse pagamento, aguarde e verifique novamente...', {
@@ -167,12 +165,7 @@ bot.action('pixpessego', (ctx) => gerarPagamento(ctx, 3700, 'PACOTE PÊSSEGO •
 bot.action('pixcereja', (ctx) => gerarPagamento(ctx, 5700, 'PACOTE CEREJA • R$57\n20 fotos e 25 vídeos'));
 
 // Ação para verificar pagamento
-bot.action(/verificar_pagamento:(.+)/, (ctx) => {
-    const transactionId = ctx.match[1]; // Captura o ID da transação
-    verificarPagamento(ctx, transactionId);
-});
+bot.action(/verificar_pagamento:(.+)/, (ctx) => verificarPagamento(ctx, ctx.match[1]));
 
-// Lança o bot
-bot.launch().then(() => {
-    console.log('Bot está funcionando!');
-});
+// Inicia o bot
+bot.launch().then(() => console.log('Bot iniciado!')).catch(err => console.error('Erro ao iniciar o bot:', err));
