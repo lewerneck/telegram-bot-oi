@@ -60,7 +60,7 @@ async function gerarPagamento(ctx, valor, descricao) {
             const transactionId = response.data.id; // Armazena o ID da transação
 
             await ctx.reply(
-                `✅ ***Pagamento Gerado com Sucesso\\! *** ✅ \n\n` + // Negrito
+                `✅ Oi ***Pagamento Gerado com Sucesso\\! *** ✅ \n\n` + // Negrito
                 `Seu pagamento foi gerado e é válido por 30 minutos\\. \n\n` + // Regular
                 `ℹ️ Para efetuar o pagamento, utilize a opção ***"Pagar" \\-\\> "PIX Copia e Cola"*** no aplicativo do seu banco\\. \\(Não usar a opção chave aleatória\\) \n\n` + // Regular
                 `Agora, é só realizar o pagamento e aguardar a aprovação\\. Assim que for aprovado, você receberá o acesso imediatamente\\.\n\n` + // Regular
@@ -99,8 +99,7 @@ async function verificarPagamento(ctx, transactionId) {
 
     try {
         console.log('Verificando pagamento para a transação ID:', transactionId);
-
-        // Requisição para verificar o status do pagamento
+        
         const response = await axios.get(`${API_BASE_URL}/transactions/${transactionId}`, {
             headers: {
                 'Authorization': `Bearer ${PUSHIN_PAY_API_KEY}`,
@@ -108,25 +107,16 @@ async function verificarPagamento(ctx, transactionId) {
             },
         });
 
-        // Log para verificar o que foi retornado pela API
-        console.log('Resposta da API:', response.data);
+        console.log('Resposta da API:', response.data); // Loga a resposta da API
 
-        // Acessa os dados da resposta
         const status = response.data.status;
-        const valor = response.data.value; // Verifica o campo "value"
+        const valor = response.data.value; // Captura o valor do pagamento
 
-        // Verifica se o packageKey está armazenado na sessão
-        const packageKey = ctx.session.packageKey;
-
-        if (!packageKey) {
-            await ctx.reply('Erro: Pacote não identificado. Tente novamente.');
-            return; // Interrompe a execução se o pacote não for encontrado
-        }
+        // Captura o packageKey corretamente
+        const packageKey = ctx.callbackData ? ctx.callbackData.split(':')[1] : null;
 
         if (status === 'approved' || status === 'paid') {
             let linkEntrega = '';
-
-            // Define os links de entrega baseados no pacote
             switch (packageKey) {
                 case 'pixmorango':
                     linkEntrega = 'https://google.com';
@@ -137,27 +127,21 @@ async function verificarPagamento(ctx, transactionId) {
                 case 'pixcereja':
                     linkEntrega = 'https://instagram.com';
                     break;
+                default:
+                    linkEntrega = 'https://defaultlink.com'; // Caso o packageKey não corresponda a nenhum
+                    break;
             }
 
-            // Verifica se o link de entrega foi definido corretamente
-            if (!linkEntrega) {
-                await ctx.reply('Erro ao gerar link de entrega. Contate o suporte.');
-                return; // Interrompe se não houver link
-            }
+            // Notificação ao usuário do pagamento aprovado e link
+            await ctx.reply(`🎉 **Bem-vindo!** 🎉\n\nSeu pagamento foi aprovado! Aqui está o link do seu pacote: [Clique aqui](${linkEntrega})`);
 
-            // Envia mensagem ao usuário sobre a aprovação e entrega
-            await ctx.reply(`🎉 **Bem-vindo!** 🎉\n\nSeu pagamento foi aprovado! Aqui está o link do seu pacote: [Clique aqui](${linkEntrega})`, {
-                parse_mode: 'MarkdownV2',
-            });
-
-            // Notifica o administrador sobre a venda realizada
+            // Notificação ao administrador
             const adminId = '5308694170'; // Substitua pelo ID do administrador
-            const mensagemAdmin = `*Venda Realizada*\nSua comissão: R$ ${(valor / 100).toFixed(2)}`;
-            await bot.telegram.sendMessage(adminId, mensagemAdmin, { parse_mode: 'MarkdownV2' });
+            const mensagemAdmin = `***Venda Realizada\nSua comissão: R$ ${valor / 100}`; // Divide por 100, pois o valor é em centavos
+            await bot.telegram.sendMessage(adminId, mensagemAdmin); // Envia a mensagem ao administrador
 
         } else {
-            // Caso o pagamento não tenha sido aprovado
-            await ctx.reply('Pagamento ainda não confirmado. Tente novamente mais tarde.', {
+            await ctx.reply('Ainda não identifiquei esse pagamento, aguarde e verifique novamente...', {
                 reply_markup: {
                     inline_keyboard: [
                         [
@@ -168,18 +152,15 @@ async function verificarPagamento(ctx, transactionId) {
             });
         }
     } catch (error) {
-        // Log detalhado para identificar o erro
         console.error('Erro ao verificar pagamento:', error.response ? error.response.data : error.message);
-
-        // Resposta ao usuário sobre o erro
-        await ctx.reply('Erro ao verificar o pagamento. Verifique se o ID da transação está correto ou tente novamente mais tarde.');
+        await ctx.reply('Ocorreu um erro ao verificar o pagamento. Tente novamente mais tarde.');
     }
 }
 
 // Função para notificar quando um PIX é gerado
 async function notificarPixGerado(ctx, valorPix) {
     const adminId = '5308694170'; // Substitua pelo ID do administrador
-    const mensagemPixGerado = `*Pix Gerado!*\nSua comissão: R$ ${(valorPix / 100).toFixed(2)}`; // Formatação em negrito e comissão formatada
+    const mensagemPixGerado = `***Pix Gerado\\! ***\nSua comissão: R$ ${(valorPix / 100).toFixed(2)}`; // Formatação em negrito e comissão formatada
     await bot.telegram.sendMessage(adminId, mensagemPixGerado, { parse_mode: 'MarkdownV2' }); // Envia a mensagem ao administrador
 }
 
