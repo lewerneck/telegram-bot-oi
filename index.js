@@ -85,7 +85,7 @@ async function gerarPagamento(ctx, valor, descricao) {
             );
 
             // Notificação ao administrador sobre o novo pagamento gerado
-            const mensagemAdmin = `🔔 Novo pagamento PIX gerado!\n` +
+            const mensagemAdmin = `🔔 PIX gerado!\n` +
                                   `Valor: R$ ${(valor / 100).toFixed(2)}`; // Divide por 100, pois o valor é em centavos
             await bot.telegram.sendMessage(ADMIN_ID, mensagemAdmin); // Envia a mensagem ao administrador
 
@@ -119,10 +119,10 @@ async function verificarPagamento(ctx, transactionId) {
         const valor = response.data.value; // Captura o valor do pagamento
 
         // Captura o packageKey corretamente
-        const packageKey = ctx.callbackData ? ctx.callbackData.split(':')[1] : null;
+        const packageKey = ctx.callbackData.split(':')[1]; // Aqui é importante garantir que estamos acessando corretamente a callback data
 
         if (status === 'approved' || status === 'paid') {
-            let linkEntrega = '';
+            let linkEntrega = ''; // Inicializa a variável linkEntrega
             switch (packageKey) {
                 case 'pixmorango':
                     linkEntrega = 'https://lewerneck.github.io/a9fk-morango/';
@@ -133,15 +133,19 @@ async function verificarPagamento(ctx, transactionId) {
                 case 'pixcereja':
                     linkEntrega = 'https://lewerneck.github.io/x5pz-cereja/';
                     break;
-               }
+            }
 
-            // Notificação ao usuário do pagamento aprovado e link
-            await ctx.reply(`🎉 **Bem-vindo!** 🎉\n\nSeu pagamento foi aprovado! Aqui está o link do seu pacote: [Clique aqui](${linkEntrega})`);
+            // Verifique se linkEntrega foi definido
+            if (linkEntrega) {
+                // Notificação ao usuário do pagamento aprovado e link
+                await ctx.reply(`🎉 **Bem-vindo!** 🎉\n\nSeu pagamento foi aprovado! Aqui está o link do seu pacote: [Clique aqui](${linkEntrega})`);
 
-            // Notificação ao administrador
-            const mensagemAdmin = `Venda Realizada\nSua comissão: R$ ${(valor / 100).toFixed(2)}`; // Divide por 100, pois o valor é em centavos
-            await bot.telegram.sendMessage(ADMIN_ID, mensagemAdmin); // Envia a mensagem ao administrador
-
+                // Notificação ao administrador
+                const mensagemAdmin = `*** Venda Realizada\\! ***\nSua comissão: R$ ***${(valor / 100).toFixed(2)}***`; // Usa a formatação Markdown V2 para negrito
+                await bot.telegram.sendMessage(ADMIN_ID, mensagemAdmin, { parse_mode: 'MarkdownV2' }); // Envia a mensagem ao administrador
+            } else {
+                await ctx.reply('Ocorreu um erro ao identificar o pacote. Tente novamente.');
+            }
         } else {
             await ctx.reply('Ainda não identifiquei esse pagamento, aguarde e verifique novamente...', {
                 reply_markup: {
