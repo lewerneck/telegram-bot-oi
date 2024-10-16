@@ -39,7 +39,6 @@ bot.start((ctx) => {
     ctx.replyWithVideo(videoUrl, { caption, reply_markup: inlineKeyboard.reply_markup });
 });
 
-// Função genérica para gerar pagamento
 async function gerarPagamento(ctx, valor, descricao) {
     await ctx.reply('Gerando Pagamento\\.\\.\\.', { parse_mode: 'MarkdownV2' });
 
@@ -60,7 +59,7 @@ async function gerarPagamento(ctx, valor, descricao) {
             const transactionId = response.data.id; // Armazena o ID da transação
 
             await ctx.reply(
-                `✅ ***Pagamento Gerado com Sucesso\\! *** ✅ \n\n` + // Negrito
+                `✅ Oi ***Pagamento Gerado com Sucesso\\! *** ✅ \n\n` + // Negrito
                 `Seu pagamento foi gerado e é válido por 30 minutos\\. \n\n` + // Regular
                 `ℹ️ Para efetuar o pagamento, utilize a opção ***"Pagar" \\-\\> "PIX Copia e Cola"*** no aplicativo do seu banco\\. \\(Não usar a opção chave aleatória\\) \n\n` + // Regular
                 `Agora, é só realizar o pagamento e aguardar a aprovação\\. Assim que for aprovado, você receberá o acesso imediatamente\\.\n\n` + // Regular
@@ -96,6 +95,7 @@ async function gerarPagamento(ctx, valor, descricao) {
         await ctx.reply('Ocorreu um erro ao gerar o pagamento. Tente novamente mais tarde.');
     }
 }
+
 
 async function verificarPagamento(ctx, transactionId) {
     await ctx.reply('Verificando Pagamento...');
