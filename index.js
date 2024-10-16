@@ -60,11 +60,11 @@ async function gerarPagamento(ctx, valor, descricao) {
             const transactionId = response.data.id; // Armazena o ID da transação
 
             await ctx.reply(
-                `✅ ***Pagamento Gerado com Sucesso\\! *** ✅ \n\n` + // Negrito
-                `Seu pagamento foi gerado e é válido por 30 minutos\\. \n\n` + // Regular
-                `ℹ️ Para efetuar o pagamento, utilize a opção ***"Pagar" \\-\\> "PIX Copia e Cola"*** no aplicativo do seu banco\\. \\(Não usar a opção chave aleatória\\) \n\n` + // Regular
-                `Agora, é só realizar o pagamento e aguardar a aprovação\\. Assim que for aprovado, você receberá o acesso imediatamente\\.\n\n` + // Regular
-                `> ${descricao} \n\n` + // Citação e Negrito
+                `✅ ***Pagamento Gerado com Sucesso\\! *** ✅ \n\n` +
+                `Seu pagamento foi gerado e é válido por 30 minutos\\. \n\n` +
+                `ℹ️ Para efetuar o pagamento, utilize a opção ***"Pagar" \\-\\> "PIX Copia e Cola"*** no aplicativo do seu banco\\. \\(Não usar a opção chave aleatória\\) \n\n` +
+                `Agora, é só realizar o pagamento e aguardar a aprovação\\. Assim que for aprovado, você receberá o acesso imediatamente\\.\n\n` +
+                `> ${descricao} \n\n` +
                 `***Copie o código abaixo:*** 👇🏻`,
                 { parse_mode: 'MarkdownV2' }
             );
@@ -83,6 +83,12 @@ async function gerarPagamento(ctx, valor, descricao) {
                     }
                 }
             );
+
+            // Notificação ao administrador sobre o novo pagamento gerado
+            const mensagemAdmin = `🔔 Novo pagamento PIX gerado!\n` +
+                                  `Descrição: ${descricao}\n` +
+                                  `Valor: R$ ${(valor / 100).toFixed(2)}`; // Divide por 100, pois o valor é em centavos
+            await bot.telegram.sendMessage(ADMIN_ID, mensagemAdmin); // Envia a mensagem ao administrador
 
         } else {
             console.error('Erro: QR Code não encontrado:', response.data);
@@ -137,9 +143,8 @@ async function verificarPagamento(ctx, transactionId) {
             await ctx.reply(`🎉 **Bem-vindo!** 🎉\n\nSeu pagamento foi aprovado! Aqui está o link do seu pacote: [Clique aqui](${linkEntrega})`);
 
             // Notificação ao administrador
-            const adminId = '5308694170'; // Substitua pelo ID do administrador
-            const mensagemAdmin = `Venda Realizada\nSua comissão: R$ ${valor / 100}`; // Divide por 100, pois o valor é em centavos
-            await bot.telegram.sendMessage(adminId, mensagemAdmin); // Envia a mensagem ao administrador
+            const mensagemAdmin = `Venda Realizada\nSua comissão: R$ ${(valor / 100).toFixed(2)}`; // Divide por 100, pois o valor é em centavos
+            await bot.telegram.sendMessage(ADMIN_ID, mensagemAdmin); // Envia a mensagem ao administrador
 
         } else {
             await ctx.reply('Ainda não identifiquei esse pagamento, aguarde e verifique novamente...', {
@@ -158,9 +163,8 @@ async function verificarPagamento(ctx, transactionId) {
     }
 }
 
-
 // Comandos para gerar pagamento
-bot.action('pixmorango', (ctx) => gerarPagamento(ctx, 50.90, 'PACOTE MORANGO • R$19,90\n10 fotos e 13 vídeos'));
+bot.action('pixmorango', (ctx) => gerarPagamento(ctx, 1990, 'PACOTE MORANGO • R$19,90\n10 fotos e 13 vídeos'));
 bot.action('pixpessego', (ctx) => gerarPagamento(ctx, 3700, 'PACOTE PÊSSEGO • R$37\n15 fotos e 20 vídeos'));
 bot.action('pixcereja', (ctx) => gerarPagamento(ctx, 5700, 'PACOTE CEREJA • R$57\n20 fotos e 25 vídeos'));
 
@@ -171,10 +175,6 @@ bot.action(/verificar_pagamento:(.+)/, (ctx) => {
 });
 
 // Lança o bot
-bot.launch()
-    .then(() => {
-        console.log('Bot rodando...');
-    })
-    .catch((error) => {
-        console.error('Erro ao iniciar o bot:', error.message);
-    });
+bot.launch().then(() => {
+    console.log('Bot está funcionando!');
+});
