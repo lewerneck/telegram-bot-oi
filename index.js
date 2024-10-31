@@ -3,9 +3,15 @@ const app = express();
 const PORT = process.env.PORT || 10000; // Usa a porta do ambiente ou 10000 como padrão
 
 
+
 const { Telegraf, Markup } = require('telegraf');
 const axios = require('axios');
 const bot = new Telegraf('7886636657:AAFq1ogAzjhFpfiJMue-Lwp9lsm_3XZqpjM');
+
+// Endpoint para a raiz
+app.get('/', (req, res) => {
+    res.send('Bot está funcionando!');
+});
 
 // Inicia o servidor
 const server = app.listen(PORT, '0.0.0.0', () => {
