@@ -260,7 +260,12 @@ async function verificarPagamento(ctx, transactionId) {
 			await ctx.deleteMessage(jaPagouMessageIds[`${ctx.chat.id}-jaPagou`]);
 			delete jaPagouMessageIds[`${ctx.chat.id}-jaPagou`]; // Remove o ID da mensagem após a exclusão
 			}
-	
+		if (verificarNovamenteMessageIds[`${ctx.chat.id}-verificarNovamente`]) {
+			await ctx.deleteMessage(verificarNovamenteMessageIds[`${ctx.chat.id}-verificarNovamente`]);
+			delete verificarNovamenteMessageIds[`${ctx.chat.id}-verificarNovamente`]; // Remove o ID da mensagem após a exclusão
+			}
+
+
 		// Envia a mensagem "Verificando Pagamento..." e armazena o ID da mensagem
 			const verificationMessage = await ctx.reply(
 			'Verificando Pagamento\\.\\.\\.',
