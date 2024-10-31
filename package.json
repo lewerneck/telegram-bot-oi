@@ -4,7 +4,7 @@
   "description": "Bot de vendas com integração Pushin Pay para pagamentos via PIX.",
   "main": "index.js",
   "scripts": {
-    "start": "pm2 start index.js --no-daemon"
+    "start": "node index.js"
   },
   "dependencies": {
     "axios": "^0.21.1",
