@@ -1,6 +1,20 @@
+const express = require('express'); // ou o framework que você está usando
+const app = express();
+const PORT = process.env.PORT || 10000; // Usa a porta do ambiente ou 10000 como padrão
+
+
 const { Telegraf, Markup } = require('telegraf');
 const axios = require('axios');
 const bot = new Telegraf('7886636657:AAFq1ogAzjhFpfiJMue-Lwp9lsm_3XZqpjM');
+
+// Inicia o servidor
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Servidor rodando na porta ${PORT}`);
+});
+
+// Ajuste os timeouts conforme necessário
+server.keepAliveTimeout = 120000; // 120 segundos
+server.headersTimeout = 120000; // 120 segundos
 
 // URL base da API
 const API_BASE_URL = 'https://api.pushinpay.com.br/api';
