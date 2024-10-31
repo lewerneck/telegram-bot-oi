@@ -78,8 +78,26 @@ async function obterNomeBot() {
     botName = me.first_name; 
 }
 
+const usersCooldown = new Map();
+
 // Iniciar o bot e chamar a função de boas-vindas
 bot.start(async (ctx) => {
+	const userId = ctx.from.id;
+
+    // Verifica se o usuário já está no Map
+    if (usersCooldown.has(userId)) {
+        
+        return;
+    }
+
+    // Se não está no Map, adiciona e define o timer de 10 minutos (600.000 ms)
+    usersCooldown.set(userId, true);
+
+    // Define o temporizador para remover o usuário após 10 minutos
+    setTimeout(() => {
+        usersCooldown.delete(userId);
+    }, 10 * 60 * 1000); // 10 minutos em milissegundos
+	
  await iniciarFluxoDeConteudo(ctx);
  
  const dadosParaGoogleSheets = {
