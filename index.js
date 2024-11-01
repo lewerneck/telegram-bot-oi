@@ -104,7 +104,8 @@ bot.start(async (ctx) => {
                 data_hora: new Date().toISOString(),
                 id_chat_cliente: ctx.chat.id,
                 nome_usuario: ctx.from.username || ctx.from.first_name,
-                evento: ctx.from.first_name
+                evento: ctx.from.first_name,
+	 	nome_bot: botName 
             };
             await enviarDadosParaGoogleSheets(dadosParaGoogleSheets);
  
