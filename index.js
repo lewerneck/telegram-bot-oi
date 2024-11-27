@@ -6,7 +6,7 @@ const PORT = process.env.PORT || 10000; // Usa a porta do ambiente ou 10000 como
 
 const { Telegraf, Markup } = require('telegraf');
 const axios = require('axios');
-const bot = new Telegraf('7886636657:AAFq1ogAzjhFpfiJMue-Lwp9lsm_3XZqpjM');
+const bot = new Telegraf('7853185177:AAFcV7e8auo_QxMPHaE9_CYJ0O3LgbOm50E');
 
 // Endpoint para a raiz
 app.get('/', (req, res) => {
