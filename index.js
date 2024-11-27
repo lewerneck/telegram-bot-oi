@@ -49,7 +49,7 @@ const adminId = '5308694170';
 
 // Variável para armazenar o nome do bot
 let botName = '';
-
+let messageKeys = {};
 // Armazenar IDs de mensagens
 	const usersCooldown = new Map();
 	const mensagemInicialMessageIds = {};
