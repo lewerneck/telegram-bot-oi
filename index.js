@@ -45,7 +45,7 @@ const PUSHIN_PAY_API_KEY = '1720|hZ42SlgkeM27SP6J1oJWR5I3hgmqKg988TtQtJsE5f93fe7
 const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbw8SFZ02_ruM2AXNl4WeegsTVijlVEaWFttvH5rAkIdJtj1zvDgQ7zCJ1l6YsfZkqge/exec';
 
 // ID do administrador (substitua pelo ID do seu administrador)
-const ADMIN_ID = '5308694170';
+const adminId = '5308694170';
 
 // Variável para armazenar o nome do bot
 let botName = '';
