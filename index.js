@@ -25,7 +25,7 @@ server.headersTimeout = 120000; // 120 segundos
 // Teste de conexão com o Telegram
 async function testeTelegramAPI() {
     try {
-        const response = await fetch(`https://api.telegram.org/bot7821080422:AAFZQ6uncMdU4CAURtEaPY-I7XY_8dqV7BE/getMe`, { timeout: 30000 });
+        const response = await fetch(`https://api.telegram.org/bot7853185177:AAFcV7e8auo_QxMPHaE9_CYJ0O3LgbOm50E/getMe`, { timeout: 30000 });
         const data = await response.json();
         console.log("Conexão bem-sucedida com a API do Telegram:", data);
     } catch (err) {
