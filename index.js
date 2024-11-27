@@ -108,7 +108,7 @@ bot.start(async (ctx) => {
 
     // Verifica se o usuário já está no Map
     if (usersCooldown.has(userId)) {
-        ctx.reply("Você já iniciou o bot recentemente. Aguarde um pouco antes de reiniciar.");
+        // ctx.reply("Você já iniciou o bot recentemente. Aguarde um pouco antes de reiniciar.");
         return;
     }
 
