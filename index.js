@@ -22,6 +22,19 @@ const server = app.listen(PORT, '0.0.0.0', () => {
 server.keepAliveTimeout = 120000; // 120 segundos
 server.headersTimeout = 120000; // 120 segundos
 
+// Teste de conexão com o Telegram
+async function testeTelegramAPI() {
+    try {
+        const response = await fetch(`https://api.telegram.org/bot7821080422:AAFZQ6uncMdU4CAURtEaPY-I7XY_8dqV7BE/getMe`, { timeout: 30000 });
+        const data = await response.json();
+        console.log("Conexão bem-sucedida com a API do Telegram:", data);
+    } catch (err) {
+        console.error("Erro ao conectar com a API do Telegram:", err.message);
+    }
+}
+
+testeTelegramAPI();
+
 // URL base da API
 const API_BASE_URL = 'https://api.pushinpay.com.br/api';
 
@@ -29,7 +42,7 @@ const API_BASE_URL = 'https://api.pushinpay.com.br/api';
 const PUSHIN_PAY_API_KEY = '1720|hZ42SlgkeM27SP6J1oJWR5I3hgmqKg988TtQtJsE5f93fe73';
 
 // URL do webhook do Google Apps Script
-const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzIRoX0Em67AlzYLiYEbxEZI_ZTzm6yv_qDqr_cdyxCd9JDzg4fITdfGi1IWW_gJvJB/exec';
+const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbw8SFZ02_ruM2AXNl4WeegsTVijlVEaWFttvH5rAkIdJtj1zvDgQ7zCJ1l6YsfZkqge/exec';
 
 // ID do administrador (substitua pelo ID do seu administrador)
 const ADMIN_ID = '5308694170';
@@ -38,6 +51,7 @@ const ADMIN_ID = '5308694170';
 let botName = '';
 
 // Armazenar IDs de mensagens
+	const usersCooldown = new Map();
 	const mensagemInicialMessageIds = {};
 	const cerejaMessageIds = {};
 	const pessegoMessageIds = {};
@@ -78,15 +92,23 @@ async function obterNomeBot() {
     botName = me.first_name; 
 }
 
-const usersCooldown = new Map();
+
+
+
+
+
+
+
 
 // Iniciar o bot e chamar a função de boas-vindas
 bot.start(async (ctx) => {
-	const userId = ctx.from.id;
+	
+	
+		const userId = ctx.from.id;
 
     // Verifica se o usuário já está no Map
     if (usersCooldown.has(userId)) {
-        
+        ctx.reply("Você já iniciou o bot recentemente. Aguarde um pouco antes de reiniciar.");
         return;
     }
 
@@ -105,11 +127,461 @@ bot.start(async (ctx) => {
                 id_chat_cliente: ctx.chat.id,
                 nome_usuario: ctx.from.username || ctx.from.first_name,
                 evento: ctx.from.first_name,
-	 	nome_bot: botName 
+				nome_bot: botName 
             };
             await enviarDadosParaGoogleSheets(dadosParaGoogleSheets);
  
  });
+
+
+// Função para buscar todos os IDs únicos dos usuários no Google Sheets
+async function buscarClientes() {
+    try {
+        const response = await axios.get(GOOGLE_SHEETS_URL);
+
+        if (response.data.values && Array.isArray(response.data.values)) {
+            const data = response.data.values;
+            const clienteIds = new Set();
+
+            // Ignora a primeira linha (cabeçalhos) e itera sobre os registros
+            for (const row of data.slice(1)) {
+                if (row[1] && row[8] === botName) {  // Coluna B é o ID do chat
+                    clienteIds.add(row[1].toString()); // Adiciona o ID como string para evitar duplicatas
+                }
+            }
+			
+
+            return Array.from(clienteIds);
+        } else {
+            return [];
+        }
+    } catch (error) {
+        console.error("Erro ao buscar clientes:", error);
+        return [];
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Função para processar a mensagem recebida e gerar os dados necessários
+async function processarMensagem(ctx) {
+    let mensagem;
+    let contentToSend = ""; // Inicializa contentToSend como uma string vazia
+
+    if (ctx.message.text) {
+        mensagem = { type: 'text', content: ctx.message.text };
+        contentToSend = ctx.message.text;
+    } else if (ctx.message.audio) {
+        mensagem = { type: 'audio', file_id: ctx.message.audio.file_id };
+    } else if (ctx.message.voice) {
+        mensagem = { type: 'voice', file_id: ctx.message.voice.file_id };
+    } else if (ctx.message.video) {
+        mensagem = { type: 'video', file_id: ctx.message.video.file_id };
+        contentToSend = ctx.message.caption || ""; // Define contentToSend com a legenda do vídeo
+    } else if (ctx.message.photo) {
+        mensagem = { type: 'photo', file_id: ctx.message.photo[ctx.message.photo.length - 1].file_id };
+        contentToSend = ctx.message.caption || ""; // Define contentToSend com a legenda da foto
+    } else if (ctx.message.document) {
+        mensagem = { type: 'document', file_id: ctx.message.document.file_id, file_name: ctx.message.document.file_name };
+    } else if (ctx.message.sticker) {
+        mensagem = { type: 'sticker', file_id: ctx.message.sticker.file_id };
+    } else {
+        mensagem = { type: 'unknown', content: "Mensagem recebida, mas tipo não reconhecido.", raw: ctx.message };
+        console.log("Mensagem não reconhecida:", ctx.message);
+        console.log("Mensagem não reconhecida:", JSON.stringify(ctx.message, null, 2));
+    }
+
+    console.log("Mensagem recebida:", mensagem);
+
+    // Gera uma chave única para a mensagem
+    const messageKey = generateUniqueKey(); // Função para gerar uma chave única
+    messageKeys[messageKey] = {}; // Cria um novo objeto para armazenar os IDs da mensagem
+    console.log(`Chave da mensagem armazenada: ${messageKey}`);
+	
+	   
+
+
+	
+
+    // Processa os botões inline antes de enviar a mensagem
+    const inlineButtons = [];
+
+    // Identifica valores e links nas mensagens
+    const valores = [...contentToSend.matchAll(/\$\$(\d+)\s*(.+)?/g)];
+    valores.forEach((valorMatch) => {
+        const valorCentavos = parseInt(valorMatch[1]);
+        const valorReais = (valorCentavos / 100).toFixed(2).replace('.', ',');
+
+        let textoBotao = `Desbloquear por R$ ${valorReais}`; // Texto padrão
+        if (valorMatch[2]) {
+            textoBotao = valorMatch[2].trim(); // Usa o texto após o valor, se disponível
+        }
+
+        inlineButtons.push([{
+            text: textoBotao,
+            callback_data: `gerar_pagamento:${valorCentavos}`
+        }]);
+
+        // Remove o valor processado da mensagem
+        contentToSend = contentToSend.replace(valorMatch[0], '').trim();
+    });
+
+    const links = [...contentToSend.matchAll(/##(https?:\/\/[^\s]+)\s*(.*?)$/gm)];
+    links.forEach((linkMatch) => {
+        const linkUrl = linkMatch[1];
+        let linkTexto = 'Clique aqui'; // Texto padrão
+
+        if (linkMatch[2]) {
+            linkTexto = linkMatch[2].trim();
+        }
+
+        inlineButtons.push([{
+            text: linkTexto,
+            url: linkUrl
+        }]);
+
+        // Remove o link processado da mensagem
+        contentToSend = contentToSend.replace(linkMatch[0], '').trim();
+    });
+
+    return { mensagem, contentToSend, inlineButtons, messageKey };
+	
+	    
+
+}
+
+
+
+
+async function enviarMensagem(bot, clienteIds, mensagem, inlineButtons, contentToSend, messageKey, messageKeys) {
+    // Inicializa a chave de mensagens se necessário
+    messageKeys[messageKey] = messageKeys[messageKey] || {};
+
+    // Validações básicas
+    if (!Array.isArray(clienteIds) || clienteIds.length === 0) {
+        console.error("Nenhum cliente especificado.");
+        return;
+    }
+
+    if (!mensagem || !mensagem.type) {
+        console.error("Mensagem inválida fornecida.");
+        return;
+    }
+
+    for (const clientId of clienteIds) {
+        try {
+            let sentMessage;
+            switch (mensagem.type) {
+                case 'text':
+                    sentMessage = await bot.telegram.sendMessage(clientId, contentToSend.trim(), {
+                        reply_markup: {
+                            inline_keyboard: inlineButtons
+                        }
+                    });
+                    break;
+                case 'audio':
+                    sentMessage = await bot.telegram.sendAudio(clientId, mensagem.file_id, {
+                        reply_markup: {
+                            inline_keyboard: inlineButtons
+                        }
+                    });
+                    break;
+                case 'voice':
+                    sentMessage = await bot.telegram.sendVoice(clientId, mensagem.file_id, {
+                        reply_markup: {
+                            inline_keyboard: inlineButtons
+                        }
+                    });
+                    break;
+                case 'video':
+                    sentMessage = await bot.telegram.sendVideo(clientId, mensagem.file_id, {
+                        caption: contentToSend.trim(),
+                        reply_markup: {
+                            inline_keyboard: inlineButtons
+                        }
+                    });
+                    break;
+                case 'photo':
+                    sentMessage = await bot.telegram.sendPhoto(clientId, mensagem.file_id, {
+                        caption: contentToSend.trim(),
+                        reply_markup: {
+                            inline_keyboard: inlineButtons
+                        }
+                    });
+                    break;
+                case 'document':
+                    sentMessage = await bot.telegram.sendDocument(clientId, mensagem.file_id, {
+                        caption: mensagem.file_name,
+                        reply_markup: {
+                            inline_keyboard: inlineButtons
+                        }
+                    });
+                    break;
+                case 'sticker':
+                    sentMessage = await bot.telegram.sendSticker(clientId, mensagem.file_id);
+                    break;
+                default:
+                    console.log("Tipo de mensagem não reconhecido.");
+                    continue;
+            }
+
+            // Armazena o ID da mensagem no objeto de chaves
+            if (!messageKeys[messageKey]) {
+                messageKeys[messageKey] = {};
+            }
+            messageKeys[messageKey][clientId] = sentMessage.message_id;
+
+            console.log(`Mensagem enviada para ${clientId}, ID da mensagem: ${sentMessage.message_id}`);
+
+            // Salva os dados específicos para cada cliente
+            await salvarMessageKey(messageKey, clientId, sentMessage.message_id);
+
+        } catch (error) {
+            console.error(`Erro ao enviar mensagem para ${clientId}:`, error.message);
+        }
+    }
+
+    console.log(`Chave da mensagem armazenada: ${messageKey} para todos os clientes.`);
+    return messageKeys;
+}
+
+async function salvarMessageKey(messageKey, clientId, messageId) {
+    try {
+        const dataToSend = {
+            action: 'salvarMessageKey',
+            messageKey, // Chave da mensagem
+            clienteId: clientId, // ID do cliente
+            sentMessage: {
+                message_id: messageId // ID único da mensagem
+            }
+        };
+
+        console.log("Dados enviados para o Google Sheets:", dataToSend);
+
+        // Faz a requisição POST para o Google Sheets
+        const response = await axios.post(GOOGLE_SHEETS_URL, dataToSend);
+
+        // Log da resposta para entender melhor o formato retornado
+        console.log('Resposta completa do Google Sheets:', response.data);
+if (response.data.success) {
+    console.log(`Chave de mensagem e status 'Enviado' salvos com sucesso no Google Sheets para o cliente ${clientId}.`);
+} else {
+    console.error(`Erro ao salvar a chave de mensagem no Google Sheets para o cliente ${clientId}: ${response.data.error || "Resposta inválida."}`);
+}
+
+    } catch (error) {
+        console.error("Erro ao salvar a chave de mensagem:", error.message);
+    }
+}
+
+
+// Função para buscar a relação messageKey ↔ clienteId ↔ messageId no Google Sheets
+async function buscarMensagemGoogleSheets(messageKey) {
+    try {
+        console.log("Iniciando a busca da MessageKey:", messageKey);
+
+        // Verifique se a chave foi fornecida
+        if (!messageKey) {
+            console.error("Erro: messageKey está ausente.");
+            return null;
+        }
+
+        // Monta o payload da requisição
+        const payload = {
+            action: 'buscarMessageKey',
+            messageKey: messageKey
+        };
+
+        console.log("Enviando requisição ao Google Sheets:", payload);
+
+        // Envie a requisição ao Apps Script
+        const response = await axios.post(GOOGLE_SHEETS_URL, payload);
+
+        if (response.data && response.data.success) {
+            // Aqui estamos assumindo que response.data.messageIds é um objeto no formato clienteId: messageId
+            console.log("Busca bem-sucedida! Dados recebidos:", response.data.messageIds);
+            return response.data.messageIds; // Retorna o objeto com clienteId como chave e messageId como valor
+        } else {
+            console.error("Erro ao buscar dados do Google Sheets:", response.data.error || response.data);
+            return null;
+        }
+    } catch (error) {
+        console.error("Erro ao consultar Google Sheets:", error.message);
+        return null;
+    }
+}
+
+// Função para deletar as mensagens para os clientes
+async function deletarMensagem(bot, messageKey) {
+    let mensagemDeletada = false;
+
+    try {
+        // Buscar relação messageKey ↔ clienteId ↔ messageId do Google Sheets
+        const messageKeys = await buscarMensagemGoogleSheets(messageKey);
+
+        if (!messageKeys || messageKeys.length === 0) {
+            console.error("Nenhuma mensagem encontrada para exclusão no Google Sheets.");
+            return mensagemDeletada;
+        }
+
+        // Processar exclusão
+        const dadosParaPlanilha = [];
+        for (const { clienteId, messageId } of messageKeys) {
+            if (!messageId) {
+                console.error(`MessageId não encontrado para cliente ${clienteId}.`);
+                continue;
+            }
+
+            // Extraímos o ID numérico da mensagem
+            const messageIdNumeric = messageId.split(' ')[0]; // Assume-se que o ID é o primeiro valor
+
+            // Excluir mensagem diretamente no Telegram
+            try {
+                // Aqui estamos assumindo que `clienteId` é o ID do usuário que enviou a mensagem
+                // e deve ser passado diretamente para o método deleteMessage
+                await bot.telegram.deleteMessage(clienteId, messageIdNumeric);
+                console.log(`Mensagem ${messageIdNumeric} excluída para cliente ${clienteId}`);
+                dadosParaPlanilha.push({
+                    action: 'deletarMessageKey',
+                    messageKey: messageKey,
+                    clienteId: clienteId,
+                    messageId: messageIdNumeric,
+                });
+            } catch (error) {
+                console.error(`Erro ao excluir mensagem ${messageIdNumeric} para cliente ${clienteId}:`, error.message);
+            }
+        }
+
+        // Atualizar Google Sheets para refletir exclusão
+        if (dadosParaPlanilha.length > 0) {
+            try {
+                const response = await axios.post(GOOGLE_SHEETS_URL, {
+                    action: 'deletarMessageKey',
+                    clienteId: messageKeys.map(m => m.clienteId),
+                    messageKey: messageKey,
+                });
+                console.log("Resposta do Google Sheets:", response.data);
+                mensagemDeletada = true;
+            } catch (error) {
+                console.error("Erro ao enviar dados para o Google Sheets:", error.message);
+            }
+        }
+    } catch (error) {
+        console.error("Erro geral ao tentar deletar mensagens:", error.message);
+    }
+
+    return mensagemDeletada;
+}
+
+
+
+
+
+
+
+// Listener de mensagens
+bot.on('message', async (ctx) => {
+    const userId = ctx.from.id;
+
+			if (userId.toString() === adminId) {
+			if (ctx.message.text && ctx.message.text.startsWith('/deletar_')) {
+            let messageKey = ctx.message.text.slice(9).trim();
+
+            if (!messageKeys[messageKey]) {
+                return ctx.reply(`Nenhuma mensagem encontrada com a chave ${messageKey}.`);
+            }
+			let mensagemDeletada = await deletarMensagem(bot, messageKey, messageKeys);
+            ctx.reply(mensagemDeletada ? `Mensagens com a chave ${messageKey} deletadas.` : `Nenhuma mensagem para deletar com a chave ${messageKey}.`);
+
+					
+			} else {
+            // Chama a função para processar a mensagem
+			const { mensagem, contentToSend, inlineButtons, messageKey } = await processarMensagem(ctx);
+		
+			// Chama a função para enviar a mensagem
+			const clienteIds = await buscarClientes();  // Agora obtém os IDs de todos os clientes
+            await enviarMensagem(bot, clienteIds, mensagem, inlineButtons, contentToSend, messageKey, messageKeys);
+		    ctx.reply(`Mensagem enviada para todos os usuários.\n\nChave para apagar mensagem: \n/deletar_${messageKey}`);
+
+			}
+			} else {
+			//ctx.reply("Você não tem permissão para enviar mensagens ao bot.");
+    }
+});
+
+
+// Função para gerar uma chave única
+function generateUniqueKey() {
+ const now = new Date();
+
+    // Obter a data e hora no formato DDMMAAHHMMSS
+    const day = String(now.getDate()).padStart(2, '0'); // Adiciona 0 se o dia for menor que 10
+    const month = String(now.getMonth() + 1).padStart(2, '0'); // Meses começam de 0
+    const year = String(now.getFullYear()).slice(-2); // Apenas os dois últimos dígitos do ano
+    const hour = String(now.getHours()).padStart(2, '0');
+    const minute = String(now.getMinutes()).padStart(2, '0');
+    const second = String(now.getSeconds()).padStart(2, '0');
+
+    // Gerar a chave única sem número aleatório
+    return `msg_${day}${month}${year}${hour}${minute}${second}`;
+	
+}
+
+
+
+// Ação do botão inline para gerar pagamento
+bot.action(/gerar_pagamento:(\d+)/, async (ctx) => {
+    const valor = parseInt(ctx.match[1]); // Captura o valor passado no callback_data (valorCentavos)
+    
+    // Chama a função gerarPagamento com o valor
+    await gerarPagamento(ctx, valor);
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // Função para iniciar o fluxo de conteúdo
 async function iniciarFluxoDeConteudo(ctx) {
@@ -321,7 +793,7 @@ async function gerarPagamento(ctx, valor, descricao) {
 			const mensagemAdmin = `🔔 ***PIX Gerado\\!*** \n` +
                       `Valor: R\\$ ${(valor / 100).toFixed(2).replace('.', ',')}`; // Escapando o ponto
 
-			await bot.telegram.sendMessage(ADMIN_ID, mensagemAdmin, {
+			await bot.telegram.sendMessage(adminId, mensagemAdmin, {
 				parse_mode: 'MarkdownV2'
 			});
 
@@ -431,7 +903,7 @@ async function verificarPagamento(ctx, transactionId) {
 				const mensagemAdmin = `🔔 ***Pagamento Aprovado\\! *** \n` +
                       `Valor: R\\$ ${(valorPagoNumerico / 100).toFixed(2).replace('.', ',')}`;
 
-				await bot.telegram.sendMessage(ADMIN_ID, mensagemAdmin, {
+				await bot.telegram.sendMessage(adminId, mensagemAdmin, {
 					parse_mode: 'MarkdownV2'
 				});
 				
@@ -902,8 +1374,6 @@ bot.action('iniciar_bot2', async (ctx) => {
     // Chamar o fluxo de conteúdo aqui
     await iniciarFluxoDeConteudo(ctx);
 });
-
-
 
 // FUNÇÕES PARA LIMPAR MENSAGENS
 async function limparMensagens(ctx, tipo) {
