@@ -1,7 +1,7 @@
 const express = require('express'); // ou o framework que você está usando
 const app = express();
 const PORT = process.env.PORT || 10000; // Usa a porta do ambiente ou 10000 como padrão
-
+const fetch = require('node-fetch'); // Certifique-se de ter node-fetch instalado
 
 
 const { Telegraf, Markup } = require('telegraf');
