@@ -42,7 +42,7 @@ const API_BASE_URL = 'https://api.pushinpay.com.br/api';
 const PUSHIN_PAY_API_KEY = '1720|hZ42SlgkeM27SP6J1oJWR5I3hgmqKg988TtQtJsE5f93fe73';
 
 // URL do webhook do Google Apps Script
-const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycby8_I4nuQ4p7nCbe0HnjpR0PQuLz2w-ZcxoPYJCBxH8ligSlIGmCE93-pNt1Wh8Gkgf/exec';
+const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwetICTF1-15v2fh2E87G1mkQqax9t_Bj3vTAfEO6vbHtnj1fVvOcbCZP74Sq7GYvpf/exec';
 
 // ID do administrador (substitua pelo ID do seu administrador)
 const adminId = '5308694170';
