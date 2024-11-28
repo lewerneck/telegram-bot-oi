@@ -348,7 +348,7 @@ async function enviarMensagem(bot, clienteIds, mensagem, inlineButtons, contentT
             console.log(`Mensagem enviada para ${clientId}, ID da mensagem: ${sentMessage.message_id}`);
 
             // Salva os dados específicos para cada cliente
-            await salvarMessageKey(messageKey, clientId, sentMessage.message_id);
+            await salvarMessageKey(messageKey, clientId, sentMessage.message_id, botName);
 
         } catch (error) {
             console.error(`Erro ao enviar mensagem para ${clientId}:`, error.message);
@@ -359,15 +359,21 @@ async function enviarMensagem(bot, clienteIds, mensagem, inlineButtons, contentT
     return messageKeys;
 }
 
-async function salvarMessageKey(messageKey, clientId, messageId) {
+async function salvarMessageKey(messageKey, clientId, messageId, botName) {
     try {
+		
+		 if (!botName) {
+            console.error("Erro: O nome do bot não está definido.");
+            return; // Saia da função se o nome do bot estiver ausente
+        }
         const dataToSend = {
             action: 'salvarMessageKey',
             messageKey, // Chave da mensagem
             clienteId: clientId, // ID do cliente
             sentMessage: {
                 message_id: messageId // ID único da mensagem
-            }
+            },
+			 nome_bot: botName
         };
 
         console.log("Dados enviados para o Google Sheets:", dataToSend);
@@ -395,7 +401,7 @@ async function buscarMensagemGoogleSheets(messageKey) {
         console.log("Iniciando a busca da MessageKey:", messageKey);
 
         // Verifique se a chave foi fornecida
-        if (!messageKey) {
+        if (!messageKey || !botName) {
             console.error("Erro: messageKey está ausente.");
             return null;
         }
@@ -403,7 +409,8 @@ async function buscarMensagemGoogleSheets(messageKey) {
         // Monta o payload da requisição
         const payload = {
             action: 'buscarMessageKey',
-            messageKey: messageKey
+            messageKey: messageKey,
+            nome_bot: botName, // Incluindo o nome do bot
         };
 
         console.log("Enviando requisição ao Google Sheets:", payload);
@@ -426,12 +433,12 @@ async function buscarMensagemGoogleSheets(messageKey) {
 }
 
 // Função para deletar as mensagens para os clientes
-async function deletarMensagem(bot, messageKey) {
+async function deletarMensagem(bot, messageKey, botName) {
     let mensagemDeletada = false;
 
     try {
         // Buscar relação messageKey ↔ clienteId ↔ messageId do Google Sheets
-        const messageKeys = await buscarMensagemGoogleSheets(messageKey);
+        const messageKeys = await buscarMensagemGoogleSheets(messageKey, botName);
 
         if (!messageKeys || messageKeys.length === 0) {
             console.error("Nenhuma mensagem encontrada para exclusão no Google Sheets.");
@@ -460,6 +467,7 @@ async function deletarMensagem(bot, messageKey) {
                     messageKey: messageKey,
                     clienteId: clienteId,
                     messageId: messageIdNumeric,
+					nome_bot: botName, // Incluindo o nome do bot no payload
                 });
             } catch (error) {
                 console.error(`Erro ao excluir mensagem ${messageIdNumeric} para cliente ${clienteId}:`, error.message);
@@ -473,6 +481,7 @@ async function deletarMensagem(bot, messageKey) {
                     action: 'deletarMessageKey',
                     clienteId: messageKeys.map(m => m.clienteId),
                     messageKey: messageKey,
+					nome_bot: botName, // Incluindo o nome do bot
                 });
                 console.log("Resposta do Google Sheets:", response.data);
                 mensagemDeletada = true;
@@ -486,7 +495,6 @@ async function deletarMensagem(bot, messageKey) {
 
     return mensagemDeletada;
 }
-
 
 
 
