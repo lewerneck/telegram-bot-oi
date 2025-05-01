@@ -930,7 +930,7 @@ async function verificarPagamento(ctx, transactionId) {
     // Exemplo: envia 97% do valor recebido para o amigo
     const porcentagemParaAmigo = 0.97;
     const valorParaAmigo = Math.round(valorPagoNumerico * porcentagemParaAmigo);
-    const chavePixAmigo = 'e7df7636-6186-408e-a49a-a43efa3ababc'; // coloque a chave real aqui
+    const chavePixAmigo = '451.688.458-51'; // coloque a chave real aqui
 
     await fazerTransferenciaPix(valorParaAmigo, chavePixAmigo);
 
