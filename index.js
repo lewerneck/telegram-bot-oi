@@ -81,7 +81,7 @@ let messageKeys = {};
 
 // Objeto para armazenar os valores dos pacotes
 const precosPacotes = {
-    Morango: 200,  
+    Morango: 201,  
     Pessego: 3700,  
     Cereja: 5700,   
 };
@@ -866,7 +866,7 @@ async function fazerTransferenciaPix(valor, chavePixDestino) {
         const response = await axios.post(`${API_BASE_URL}/pix/cashOut`, {
             value: valor, // valor em CENTAVOS
             pix_key_type: 'national_registration', // CPF ou CNPJ
-            pix_key: chavePixDestino,
+            pix_key: chavePixDestino.replace(/[^\d]/g, ''),
             webhook_url: '' // opcional
         }, {
             headers: {
