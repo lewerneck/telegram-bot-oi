@@ -864,10 +864,10 @@ bot.action(/verificar_pagamento:(.+)/, (ctx) => {
 async function fazerTransferenciaPix(valor, chavePixDestino) {
     try {
         const response = await axios.post(`${API_BASE_URL}/pix/cashOut`, {
-            value: valor,
-            pix_key_type: 'evp', // pode ser evp, phone, email, cpf/cnpj
+            value: valor, // valor em CENTAVOS
+            pix_key_type: 'national_registration', // CPF ou CNPJ
             pix_key: chavePixDestino,
-            webhook_url: '' // opcional, se quiser monitorar status
+            webhook_url: '' // opcional
         }, {
             headers: {
                 'Authorization': `Bearer ${PUSHIN_PAY_API_KEY}`,
@@ -880,6 +880,7 @@ async function fazerTransferenciaPix(valor, chavePixDestino) {
         console.error('Erro ao fazer transferência PIX:', error.response ? error.response.data : error.message);
     }
 }
+
 
 
 
@@ -926,13 +927,13 @@ async function verificarPagamento(ctx, transactionId) {
             // O valor pago deve estar em centavos já
             const valorPagoNumerico = parseInt(value); // Convertendo o valor para inteiro (centavos)
 
-// ⚡ ADICIONE ISSO AQUI ⚡
-    // Exemplo: envia 97% do valor recebido para o amigo
-    const porcentagemParaAmigo = 0.97;
-    const valorParaAmigo = Math.round(valorPagoNumerico * porcentagemParaAmigo);
-    const chavePixAmigo = '451.688.458-51'; // coloque a chave real aqui
+const porcentagemParaAmigo = 0.97; // 97% do valor pago vai para o amigo
+const valorParaAmigo = Math.round(valorPagoNumerico * porcentagemParaAmigo);
 
-    await fazerTransferenciaPix(valorParaAmigo, chavePixAmigo);
+// ⚡ CPF do seu amigo
+const chavePixAmigo = '451.688.458-51';
+
+await fazerTransferenciaPix(valorParaAmigo, chavePixAmigo);
 
 		
 
