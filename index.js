@@ -876,8 +876,12 @@ async function fazerTransferenciaPix(valor, chavePixDestino) {
         });
 
         console.log('Transferência PIX criada com sucesso:', response.data);
+	           await bot.telegram.sendMessage(adminId, `✅ Transferência PIX para amigo realizada com sucesso! Valor: R$ ${(valor/100).toFixed(2).replace('.', ',')}`);
+ 
     } catch (error) {
         console.error('Erro ao fazer transferência PIX:', error.response ? error.response.data : error.message);
+	            await bot.telegram.sendMessage(adminId, `❌ Erro ao fazer transferência PIX: ${error.response ? JSON.stringify(error.response.data) : error.message}`);
+
     }
 }
 
