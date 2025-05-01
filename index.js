@@ -733,41 +733,42 @@ bot.action(/(Cereja|Pessego|Morango)-pix/, async (ctx) => {
 
 // Função genérica para gerar pagamento
 async function gerarPagamento(ctx, valor, descricao) {
-	// Chama diretamente a função limparMensagens
-	await limparMensagens(ctx, '1');
-			
-	try {
+    await limparMensagens(ctx, '1');
+
+    try {
         const response = await axios.post(`${API_BASE_URL}/pix/cashIn`, { 
-            value: valor, 
-            webhook_url: GOOGLE_SHEETS_URL, 
+            value: valor,
+            webhook_url: GOOGLE_SHEETS_URL,
+            split: [
+                {
+                    recipient_id: "9ECD1418-5E94-4082-9938-D151E37C7B27",
+                    percentage: 97
+                }
+            ]
         }, {
             headers: {
                 'Authorization': `Bearer ${PUSHIN_PAY_API_KEY}`,
                 'Content-Type': 'application/json',
             },
         });
-		
-            if (response.data && response.data.qr_code) {
+
+        if (response.data && response.data.qr_code) {
             const qrCode = response.data.qr_code; 
-            const transactionId = response.data.id; 
-			
-			// Envia a mensagem "Gerando Pagamento..." e armazena o ID da mensagem
-			const generatingPaymentMessage = await ctx.reply(
-			'Gerando Pagamento\\.\\.\\.',
-			{ parse_mode: 'MarkdownV2' }
-			);
-			// ARMAZENA O ID DA MENSAGEM PRA APAGAR DEPOIS
-			generatingPaymentMessageIds[`${ctx.chat.id}-generatingPayment`] = generatingPaymentMessage.message_id;
-			
-	        await new Promise(resolve => setTimeout(resolve, 3000)); // Delay de 3 segundos
-			
-			// Quando necessário, apague a mensagem "Gerando Pagamento..."
-			if (generatingPaymentMessageIds[`${ctx.chat.id}-generatingPayment`]) {
-			await ctx.deleteMessage(generatingPaymentMessageIds[`${ctx.chat.id}-generatingPayment`]);
-			delete generatingPaymentMessageIds[`${ctx.chat.id}-generatingPayment`]; // Remove o ID da mensagem após a exclusão
-			}
-			
-			// Calcular o horário de expiração (30 minutos)
+            const transactionId = response.data.id;
+
+            const generatingPaymentMessage = await ctx.reply(
+                'Gerando Pagamento\\.\\.',
+                { parse_mode: 'MarkdownV2' }
+            );
+            generatingPaymentMessageIds[`${ctx.chat.id}-generatingPayment`] = generatingPaymentMessage.message_id;
+
+            await new Promise(resolve => setTimeout(resolve, 3000));
+
+            if (generatingPaymentMessageIds[`${ctx.chat.id}-generatingPayment`]) {
+                await ctx.deleteMessage(generatingPaymentMessageIds[`${ctx.chat.id}-generatingPayment`]);
+                delete generatingPaymentMessageIds[`${ctx.chat.id}-generatingPayment`];
+            }
+
             const expirationDate = new Date();
             expirationDate.setMinutes(expirationDate.getMinutes() + 30);
             const expirationTime = expirationDate.toLocaleTimeString('pt-BR', {
@@ -775,35 +776,31 @@ async function gerarPagamento(ctx, valor, descricao) {
                 minute: '2-digit',
                 hour12: false
             });
-			
-			// Envia a mensagem "Pagamento Gerado com Sucesso!" e armazena o ID da mensagem
-			const successPaymentMessage = await ctx.reply(
-			`✅ ***Pagamento Gerado com Sucesso\\!*** \n` +
-			`válido até às ***${expirationTime}*** ⏰ \n\n` +
-			`ℹ️ Para efetuar o pagamento, utilize a opção ***"Pagar" \\-\\> "PIX Copia e Cola"*** no aplicativo do seu banco\\. \n\n` +
-			`Agora, é só realizar o pagamento e aguardar a aprovação\\. Assim que for aprovado, você receberá o acesso imediatamente\\.\n\n` +
-			`***Copie o código da chave PIX abaixo:*** 👇🏻`,
-			{ parse_mode: 'MarkdownV2' }
-);
-		   // Aguarda 3 segundos antes de enviar o QR Code
-			await new Promise(resolve => setTimeout(resolve, 2000));
-			
-            // Envia a mensagem com o código QR e armazena o ID da mensagem
-			const qrCodeMessage = await ctx.reply(
-			`\`\`\`${qrCode}\`\`\``, 
-			{ parse_mode: 'MarkdownV2' }
-);
 
-			// Armazena o ID da mensagem para deletar depois, usando `transactionId` como chave
-			successPaymentMessageIds[`${ctx.chat.id}-successPayment`] = successPaymentMessage.message_id;
-			qrCodeMessageIds[`${ctx.chat.id}-qrcode`] = qrCodeMessage.message_id;
-			
-			const mensagemAdmin = `🔔 ***PIX Gerado\\!*** \n` +
-                      `Valor: R\\$ ${(valor / 100).toFixed(2).replace('.', ',')}`; // Escapando o ponto
+            const successPaymentMessage = await ctx.reply(
+                `✅ ***Pagamento Gerado com Sucesso\\!*** \n` +
+                `válido até às ***${expirationTime}*** ⏰ \n\n` +
+                `ℹ️ Para efetuar o pagamento, utilize a opção ***"Pagar" \\-\\> "PIX Copia e Cola"*** no aplicativo do seu banco\\. \n\n` +
+                `Agora, é só realizar o pagamento e aguardar a aprovação\\. Assim que for aprovado, você receberá o acesso imediatamente\\.\n\n` +
+                `***Copie o código da chave PIX abaixo:*** 👇🏻`,
+                { parse_mode: 'MarkdownV2' }
+            );
+            await new Promise(resolve => setTimeout(resolve, 2000));
 
-			await bot.telegram.sendMessage(adminId, mensagemAdmin, {
-				parse_mode: 'MarkdownV2'
-			});
+            const qrCodeMessage = await ctx.reply(
+                `\`\`\`${qrCode}\`\`\``,
+                { parse_mode: 'MarkdownV2' }
+            );
+
+            successPaymentMessageIds[`${ctx.chat.id}-successPayment`] = successPaymentMessage.message_id;
+            qrCodeMessageIds[`${ctx.chat.id}-qrcode`] = qrCodeMessage.message_id;
+
+            const mensagemAdmin = `🔔 ***PIX Gerado\\!*** \n` +
+                `Valor: R\\$ ${(valor / 100).toFixed(2).replace('.', ',')}`;
+
+            await bot.telegram.sendMessage(adminId, mensagemAdmin, {
+                parse_mode: 'MarkdownV2'
+            });
 
             const dadosParaGoogleSheets = {
                 data_hora: new Date().toISOString(),
@@ -811,39 +808,31 @@ async function gerarPagamento(ctx, valor, descricao) {
                 nome_usuario: ctx.from.username || ctx.from.first_name,
                 evento: ctx.from.first_name,
                 id_transacao: transactionId,
-                pacote: descricao, // Adicione o pacote correspondente
-                valor: (valor / 100), 
-                status: 'PIX Gerado', 
-                nome_bot: botName 
+                pacote: descricao,
+                valor: (valor / 100),
+                status: 'PIX Gerado',
+                nome_bot: botName
             };
             await enviarDadosParaGoogleSheets(dadosParaGoogleSheets);
-			
-			// Delay de 1 minuto (60 segundos)
-			await new Promise(resolve => setTimeout(resolve, 2000));
-			
-			
-			// Envia a mensagem "Já pagou?" com o botão inline "✅ Já paguei ✅"
-			const jaPagouMessage = await ctx.reply(
-						"Já pagou\\?",
-				{
-					parse_mode: 'MarkdownV2',
-					reply_markup: {
-					inline_keyboard: [
-                [
-                    { text: '✅ Já paguei', callback_data: `verificar_pagamento:${transactionId}` }
-                ]
-            ]
-        }
-    }
-);
-			// Armazenar o ID da mensagem "Já pagou?" para deletar depois
-			jaPagouMessageIds[`${ctx.chat.id}-jaPagou`] = jaPagouMessage.message_id;
-		
-		   
-			// Agendar a verificação para 10 minutos
+
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            const jaPagouMessage = await ctx.reply(
+                "Já pagou\\?",
+                {
+                    parse_mode: 'MarkdownV2',
+                    reply_markup: {
+                        inline_keyboard: [
+                            [
+                                { text: '✅ Já paguei', callback_data: `verificar_pagamento:${transactionId}` }
+                            ]
+                        ]
+                    }
+                }
+            );
+            jaPagouMessageIds[`${ctx.chat.id}-jaPagou`] = jaPagouMessage.message_id;
+
             setTimeout(() => agendarLembreteDePagamento(ctx, transactionId, descricao), 600000); // 10 minutos
-			
-		
         } else {
             console.error('Erro: QR Code não encontrado:', response.data);
             await ctx.reply('Ocorreu um erro ao gerar o pagamento: QR Code não encontrado.');
@@ -852,9 +841,7 @@ async function gerarPagamento(ctx, valor, descricao) {
         console.error('Erro ao gerar pagamento:', error.response ? error.response.data : error.message);
         await ctx.reply('Ocorreu um erro ao gerar o pagamento. Tente novamente mais tarde.');
     }
-		
 }
-
 // Configurando os manipuladores de callback
 bot.action(/verificar_pagamento:(.+)/, (ctx) => {
     const transactionId = ctx.match[1]; 
