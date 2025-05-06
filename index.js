@@ -81,7 +81,7 @@ let messageKeys = {};
 
 // Objeto para armazenar os valores dos pacotes
 const precosPacotes = {
-    Morango: 201,  
+    Morango: 1990,  
     Pessego: 3700,  
     Cereja: 5700,   
 };
